@@ -187,6 +187,10 @@ const schema = new GraphQLSchema({
   query: ROOT_QUERY,
 });
 
+// cors
+const cors = require('cors');
+app.use(cors());
+
 app.use(
   "/api",
   expressGraphQL({
