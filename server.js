@@ -52,9 +52,13 @@ const BookType = new GraphQLObjectType({
     genreId: { type: GraphQLNonNull(GraphQLInt) },
     statusId: { type: GraphQLNonNull(GraphQLInt) },
     created: {
-      type: GraphQLDateTime,
-      resolve: (book) => new Date(book.created)
+      type: GraphQLNonNull(GraphQLString),
+      resolve: (book) => new Date(book.created).toISOString(),
     },
+    // created: {
+    //   type: CreatedType,
+    //   resolve: (book) => new Date(book.created).toISOString(),
+    // },
     genre: {
       type: GenreType,
       resolve: (book) => {
@@ -65,6 +69,25 @@ const BookType = new GraphQLObjectType({
       type: StatusType,
       resolve: (book) => {
         return status.find((status) => status.id === book.statusId);
+      },
+    },
+  }),
+});
+
+const CreatedType = new GraphQLObjectType({
+  name: "Created",
+  description: "This represents a created date",
+  fields: () => ({
+    created: {
+      type: GraphQLNonNull(GraphQLString),
+      resolve: () => {
+        return new Date(2020 - 01 - 01);
+      },
+    },
+    books: {
+      type: new GraphQLList(BookType),
+      resolve: (created) => {
+        return books.filter((book) => book.created === created);
       },
     },
   }),
@@ -152,6 +175,11 @@ const ROOT_QUERY = new GraphQLObjectType({
       },
       resolve: (parent, args) => status.find((status) => status.id === args.id),
     },
+    // createdAt: {
+    //   type: new GraphQLList(CreatedType),
+    //   description: "List of created",
+    //   resolve: () => created,
+    // },
   }),
 });
 
