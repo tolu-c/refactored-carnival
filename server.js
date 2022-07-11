@@ -9,6 +9,8 @@ const {
   GraphQLNonNull,
 } = require("graphql");
 
+const app = express();
+
 const status = [
   { id: 1, name: "Published" },
   { id: 2, name: "Not published" },
@@ -67,7 +69,9 @@ const GenreType = new GraphQLObjectType({
     name: { type: GraphQLNonNull(GraphQLString) },
     books: {
       type: new GraphQLList(BookType),
-      resolve: () => {},
+      resolve: (genre) => {
+        return genres.filter(genre => genre.id === book.genreId);
+      },
     },
   }),
 });
@@ -80,7 +84,9 @@ const StatusType = new GraphQLObjectType({
     name: { type: GraphQLNonNull(GraphQLString) },
     books: {
       type: new GraphQLList(BookType),
-      resolve: () => {},
+      resolve: (status) => {
+        return books.filter((book) => book.statusId === status.id);
+      },
     },
   }),
 });
@@ -132,6 +138,4 @@ app.use('/api', expressGraphQL({
   graphiql: true,
   }));
 
-const app = express();
-
-app.listen(4444, () => console.log("server listening on port 4444"));
+app.listen(4000, () => console.log("server listening on port 4000"));
