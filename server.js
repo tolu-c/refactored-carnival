@@ -31,7 +31,7 @@ const books = [
   { id: 1, name: "Book 1", genreId: 1, statusId: 1 },
   { id: 2, name: "Book 2", genreId: 2, statusId: 2 },
   { id: 3, name: "Book 3", genreId: 3, statusId: 1 },
-  { id: 4, name: "Book 4", genreId: 4, statusId: 2 },
+  { id: 4, name: "Book 4", genreId: 2, statusId: 2 },
   { id: 5, name: "Book 5", genreId: 5, statusId: 1 },
   { id: 6, name: "Book 6", genreId: 6, statusId: 2 },
   { id: 7, name: "Book 7", genreId: 7, statusId: 1 },
@@ -70,7 +70,7 @@ const GenreType = new GraphQLObjectType({
     books: {
       type: new GraphQLList(BookType),
       resolve: (genre) => {
-        return genres.filter(genre => genre.id === book.genreId);
+        return books.filter(book => book.genreId === genre.id);
       },
     },
   }),
@@ -121,10 +121,18 @@ const ROOT_QUERY = new GraphQLObjectType({
       },
       resolve: (parent, args) => genres.find((genre) => genre.id === args.id),
     },
-    status: {
+    statuses: {
       type: new GraphQLList(StatusType),
       description: "List of status",
       resolve: () => status,
+    },
+    status: {
+      type: StatusType,
+      description: "A single status",
+      args: {
+        id: { type: GraphQLInt },
+      },
+      resolve: (parent, args) => status.find((status) => status.id === args.id),
     },
   }),
 });
