@@ -70,7 +70,7 @@ const GenreType = new GraphQLObjectType({
     books: {
       type: new GraphQLList(BookType),
       resolve: (genre) => {
-        return books.filter(book => book.genreId === genre.id);
+        return books.filter((book) => book.genreId === genre.id);
       },
     },
   }),
@@ -141,9 +141,13 @@ const schema = new GraphQLSchema({
   query: ROOT_QUERY,
 });
 
-app.use('/api', expressGraphQL({
-  schema: schema,
-  graphiql: true,
-  }));
+app.use(
+  "/api",
+  expressGraphQL({
+    schema: schema,
+    graphiql: true,
+  })
+);
 
-app.listen(4000, () => console.log("server listening on port 4000"));
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`server listening on port ${PORT}`));
