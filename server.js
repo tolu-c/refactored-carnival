@@ -8,6 +8,11 @@ const {
   GraphQLInt,
   GraphQLNonNull,
 } = require("graphql");
+const {
+  GraphQLDate,
+  GraphQLTime,
+  GraphQLDateTime,
+} = require("graphql-iso-date");
 
 const app = express();
 
@@ -28,14 +33,14 @@ const genres = [
 ];
 
 const books = [
-  { id: 1, name: "Book 1", genreId: 1, statusId: 1 },
-  { id: 2, name: "Book 2", genreId: 2, statusId: 2 },
-  { id: 3, name: "Book 3", genreId: 3, statusId: 1 },
-  { id: 4, name: "Book 4", genreId: 2, statusId: 2 },
-  { id: 5, name: "Book 5", genreId: 5, statusId: 1 },
-  { id: 6, name: "Book 6", genreId: 6, statusId: 2 },
-  { id: 7, name: "Book 7", genreId: 7, statusId: 1 },
-  { id: 8, name: "Book 8", genreId: 8, statusId: 2 },
+  { id: 1, name: "Book 1", genreId: 1, statusId: 1, created: "2020-01-01" },
+  { id: 2, name: "Book 2", genreId: 2, statusId: 2, created: "2020-01-02" },
+  { id: 3, name: "Book 3", genreId: 3, statusId: 1, created: "2020-01-03" },
+  { id: 4, name: "Book 4", genreId: 2, statusId: 2, created: "2020-01-04" },
+  { id: 5, name: "Book 5", genreId: 5, statusId: 1, created: "2020-01-05" },
+  { id: 6, name: "Book 6", genreId: 6, statusId: 2, created: "2020-01-06" },
+  { id: 7, name: "Book 7", genreId: 7, statusId: 1, created: "2020-01-07" },
+  { id: 8, name: "Book 8", genreId: 8, statusId: 2, created: "2020-01-08" },
 ];
 
 const BookType = new GraphQLObjectType({
@@ -46,6 +51,10 @@ const BookType = new GraphQLObjectType({
     name: { type: GraphQLNonNull(GraphQLString) },
     genreId: { type: GraphQLNonNull(GraphQLInt) },
     statusId: { type: GraphQLNonNull(GraphQLInt) },
+    created: {
+      type: GraphQLDateTime,
+      resolve: (book) => new Date(book.created)
+    },
     genre: {
       type: GenreType,
       resolve: (book) => {
@@ -60,6 +69,15 @@ const BookType = new GraphQLObjectType({
     },
   }),
 });
+
+// const CreatedType = new GraphQLObjectType({
+//   name: "Created",
+//   description: "This represents a created",
+//   fields: () => {
+//     time: { type: DateTimeField},
+//     resolve: () => new Date(books.created)
+//   }
+// });
 
 const GenreType = new GraphQLObjectType({
   name: "Genre",
