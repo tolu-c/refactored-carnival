@@ -168,9 +168,10 @@ const ROOT_MUTATION = new GraphQLObjectType({
       resolve: (parent, args) => {
         return books.filter(
           (book) =>
-            book.name === args.text ||
-            book.genre === args.text ||
-            book.status === args.text
+          args.text.includes(book.name)
+            // book.name === args.text ||
+            // book.genre === args.text ||
+            // book.status === args.text
         );
       },
     },
