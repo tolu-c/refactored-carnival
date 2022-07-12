@@ -1,6 +1,6 @@
 {
   "name": "refactored-carnival",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "a book mock data api with graphql",
   "main": "server.js",
   "scripts": {
@@ -26,8 +26,7 @@
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "express-graphql": "^0.7.1",
-    "graphql": "^14.1.1",
-    "graphql-iso-date": "^3.6.1"
+    "graphql": "^14.1.1"
   },
   "devDependencies": {
     "nodemon": "^1.18.10"

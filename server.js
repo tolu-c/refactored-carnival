@@ -8,40 +8,12 @@ const {
   GraphQLInt,
   GraphQLNonNull,
 } = require("graphql");
-const {
-  GraphQLDate,
-  GraphQLTime,
-  GraphQLDateTime,
-} = require("graphql-iso-date");
+
+const books  = require("./books");
+const genres = require("./genres");
+const status = require("./status");
 
 const app = express();
-
-const status = [
-  { id: 1, name: "Published" },
-  { id: 2, name: "Not published" },
-];
-
-const genres = [
-  { id: 1, name: "Action" },
-  { id: 2, name: "Drama" },
-  { id: 3, name: "Comedy" },
-  { id: 4, name: "Horror" },
-  { id: 5, name: "Thriller" },
-  { id: 6, name: "Sci-Fi" },
-  { id: 7, name: "Romance" },
-  { id: 8, name: "Mystery" },
-];
-
-const books = [
-  { id: 1, name: "Book 1", genreId: 1, statusId: 1, created: "2020-01-01" },
-  { id: 2, name: "Book 2", genreId: 2, statusId: 2, created: "2020-01-02" },
-  { id: 3, name: "Book 3", genreId: 3, statusId: 1, created: "2020-01-03" },
-  { id: 4, name: "Book 4", genreId: 2, statusId: 2, created: "2020-01-04" },
-  { id: 5, name: "Book 5", genreId: 5, statusId: 1, created: "2020-01-05" },
-  { id: 6, name: "Book 6", genreId: 6, statusId: 2, created: "2020-01-06" },
-  { id: 7, name: "Book 7", genreId: 7, statusId: 1, created: "2020-01-07" },
-  { id: 8, name: "Book 8", genreId: 8, statusId: 2, created: "2020-01-08" },
-];
 
 const BookType = new GraphQLObjectType({
   name: "Book",
@@ -49,8 +21,6 @@ const BookType = new GraphQLObjectType({
   fields: () => ({
     id: { type: GraphQLNonNull(GraphQLInt) },
     name: { type: GraphQLNonNull(GraphQLString) },
-    genreId: { type: GraphQLNonNull(GraphQLInt) },
-    statusId: { type: GraphQLNonNull(GraphQLInt) },
     created: {
       type: GraphQLNonNull(GraphQLString),
       resolve: (book) => new Date(book.created).toISOString(),
@@ -62,13 +32,13 @@ const BookType = new GraphQLObjectType({
     genre: {
       type: GenreType,
       resolve: (book) => {
-        return genres.find((genre) => genre.id === book.genreId);
+        return genres.find((genre) => genre.name === book.genre);
       },
     },
     status: {
       type: StatusType,
       resolve: (book) => {
-        return status.find((status) => status.id === book.statusId);
+        return status.find((status) => status.name === book.status);
       },
     },
   }),
@@ -111,7 +81,7 @@ const GenreType = new GraphQLObjectType({
     books: {
       type: new GraphQLList(BookType),
       resolve: (genre) => {
-        return books.filter((book) => book.genreId === genre.id);
+        return books.filter((book) => book.genre === genre.name);
       },
     },
   }),
@@ -126,7 +96,7 @@ const StatusType = new GraphQLObjectType({
     books: {
       type: new GraphQLList(BookType),
       resolve: (status) => {
-        return books.filter((book) => book.statusId === status.id);
+        return books.filter((book) => book.status === status.name);
       },
     },
   }),
@@ -158,9 +128,10 @@ const ROOT_QUERY = new GraphQLObjectType({
       type: GenreType,
       description: "A single genre",
       args: {
-        id: { type: GraphQLInt },
+        name: { type: GraphQLString },
       },
-      resolve: (parent, args) => genres.find((genre) => genre.id === args.id),
+      resolve: (parent, args) =>
+        genres.find((genre) => genre.name === args.name),
     },
     statuses: {
       type: new GraphQLList(StatusType),
@@ -171,9 +142,10 @@ const ROOT_QUERY = new GraphQLObjectType({
       type: StatusType,
       description: "A single status",
       args: {
-        id: { type: GraphQLInt },
+        name: { type: GraphQLString },
       },
-      resolve: (parent, args) => status.find((status) => status.id === args.id),
+      resolve: (parent, args) =>
+        status.find((status) => status.name === args.name),
     },
     // createdAt: {
     //   type: new GraphQLList(CreatedType),
@@ -183,12 +155,35 @@ const ROOT_QUERY = new GraphQLObjectType({
   }),
 });
 
+const ROOT_MUTATION = new GraphQLObjectType({
+  name: "mutations",
+  description: "Root Mutations",
+  fields: () => ({
+    search: {
+      type: new GraphQLList(BookType),
+      description: "Search for changes",
+      args: {
+        text: { type: GraphQLNonNull(GraphQLString) },
+      },
+      resolve: (parent, args) => {
+        return books.filter(
+          (book) =>
+            book.name === args.text ||
+            book.genre === args.text ||
+            book.status === args.text
+        );
+      },
+    },
+  }),
+});
+
 const schema = new GraphQLSchema({
   query: ROOT_QUERY,
+  mutation: ROOT_MUTATION,
 });
 
 // cors
-const cors = require('cors');
+const cors = require("cors");
 app.use(cors());
 
 app.use(
