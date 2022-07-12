@@ -7,13 +7,32 @@ const {
   GraphQLList,
   GraphQLInt,
   GraphQLNonNull,
+  GraphQLScalarType,
 } = require("graphql");
+const { Kind } = require("graphql/language");
 
-const books  = require("./books");
+const books = require("./books");
 const genres = require("./genres");
 const status = require("./status");
 
 const app = express();
+
+const DateTime = new GraphQLScalarType({
+  name: "DateTime",
+  description: "DateTime custom scalar type",
+  parseValue(value) {
+    return new Date(value).toISOString(); // value from the client
+  },
+  serialize(value) {
+    return value.toDateString(); // value sent to the client
+  },
+  parseLiteral(ast) {
+    if (ast.kind === Kind.INT) {
+      return new Date(ast.value); // ast value is always in string format
+    }
+    return null;
+  },
+});
 
 const BookType = new GraphQLObjectType({
   name: "Book",
@@ -22,13 +41,9 @@ const BookType = new GraphQLObjectType({
     id: { type: GraphQLNonNull(GraphQLInt) },
     name: { type: GraphQLNonNull(GraphQLString) },
     created: {
-      type: GraphQLNonNull(GraphQLString),
-      resolve: (book) => new Date(book.created).toISOString(),
+      type: DateTime,
+      resolve: (book) => new Date(book.created),
     },
-    // created: {
-    //   type: CreatedType,
-    //   resolve: (book) => new Date(book.created).toISOString(),
-    // },
     genre: {
       type: GenreType,
       resolve: (book) => {
@@ -43,34 +58,6 @@ const BookType = new GraphQLObjectType({
     },
   }),
 });
-
-const CreatedType = new GraphQLObjectType({
-  name: "Created",
-  description: "This represents a created date",
-  fields: () => ({
-    created: {
-      type: GraphQLNonNull(GraphQLString),
-      resolve: () => {
-        return new Date(2020 - 01 - 01);
-      },
-    },
-    books: {
-      type: new GraphQLList(BookType),
-      resolve: (created) => {
-        return books.filter((book) => book.created === created);
-      },
-    },
-  }),
-});
-
-// const CreatedType = new GraphQLObjectType({
-//   name: "Created",
-//   description: "This represents a created",
-//   fields: () => {
-//     time: { type: DateTimeField},
-//     resolve: () => new Date(books.created)
-//   }
-// });
 
 const GenreType = new GraphQLObjectType({
   name: "Genre",
@@ -109,7 +96,11 @@ const ROOT_QUERY = new GraphQLObjectType({
     books: {
       type: new GraphQLList(BookType),
       description: "List of books",
-      resolve: () => books,
+      resolve: () =>
+        books.sort(
+          (bookA, bookB) =>
+            new Date(bookA.created) - new Date(bookB.created)
+        ),
     },
     book: {
       type: BookType,
@@ -147,11 +138,6 @@ const ROOT_QUERY = new GraphQLObjectType({
       resolve: (parent, args) =>
         status.find((status) => status.name === args.name),
     },
-    // createdAt: {
-    //   type: new GraphQLList(CreatedType),
-    //   description: "List of created",
-    //   resolve: () => created,
-    // },
   }),
 });
 
@@ -168,10 +154,9 @@ const ROOT_MUTATION = new GraphQLObjectType({
       resolve: (parent, args) => {
         return books.filter(
           (book) =>
-          args.text.includes(book.name)
-            // book.name === args.text ||
-            // book.genre === args.text ||
-            // book.status === args.text
+            book.name.includes(args.text) ||
+            book.genre.includes(args.text) ||
+            book.status.includes(args.text)
         );
       },
     },
